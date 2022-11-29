@@ -158,7 +158,7 @@ class GaussianDensity {
     pt1.z = 0.0;
     geometry_msgs::Point pt2;
     pt2.x = three_std_dev_1 * eigen_vectors.col(0)(0).real(); // Eigen vector in column zero, 0th element of vector, its real part
-    pt2.y = three_std_dev_2 * eigen_vectors.col(0)(1).real(); // Eigen vector in column zero, 1st element of vector, its real part
+    pt2.y = three_std_dev_1 * eigen_vectors.col(0)(1).real(); // Eigen vector in column zero, 1st element of vector, its real part
     pt2.z = 0.0;
     addArrowMarkerTwoPointForm( getMarkerId(), 
                                 pt1, pt2, 
@@ -167,7 +167,7 @@ class GaussianDensity {
                                 "distribution", 
                                 1.0, 0.0, 0.0, 1.0);
 
-    pt2.x = three_std_dev_1 * eigen_vectors.col(1)(0).real(); // Eigen vector in column one, 0th element of vector, its real part
+    pt2.x = three_std_dev_2 * eigen_vectors.col(1)(0).real(); // Eigen vector in column one, 0th element of vector, its real part
     pt2.y = three_std_dev_2 * eigen_vectors.col(1)(1).real(); // Eigen vector in column one, 1st element of vector, its real part
     pt2.z = 0.0;
     addArrowMarkerTwoPointForm( getMarkerId(), 
