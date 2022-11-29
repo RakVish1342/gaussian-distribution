@@ -157,7 +157,7 @@ class GaussianDensity {
                      );
     }
 
-    // Visualize eigen vectors
+    // Visualize eigen vectors (from least significant to most significant)
     geometry_msgs::Point eig_vec1_pt1;
     eig_vec1_pt1.x = 0.0;
     eig_vec1_pt1.y = 0.0;
