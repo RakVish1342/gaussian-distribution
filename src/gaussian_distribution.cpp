@@ -157,12 +157,57 @@ class GaussianDensity {
                      );
     }
 
+    // Visualize eigen vectors
+    geometry_msgs::Point eig_vec1_pt1;
+    eig_vec1_pt1.x = 0.0;
+    eig_vec1_pt1.y = 0.0;
+    eig_vec1_pt1.z = 0.0;
+    geometry_msgs::Point eig_vec1_pt2;
+    if(is_only_real) {
+      eig_vec1_pt2.x = three_std_dev_1 * eigen_vectors.col(0)(0); // Eigen vector in column zero, 0th element of vector
+      eig_vec1_pt2.y = three_std_dev_1 * eigen_vectors.col(0)(1); // Eigen vector in column zero, 1st element of vector
+      eig_vec1_pt2.z = 0.0;
+    }
+    else {
+      eig_vec1_pt2.x = three_std_dev_1 * eigen_vectors_complex.col(0)(0).real(); // Eigen vector in column zero, 0th element of vector, its real part
+      eig_vec1_pt2.y = three_std_dev_1 * eigen_vectors_complex.col(0)(1).real(); // Eigen vector in column zero, 1st element of vector, its real part
+      eig_vec1_pt2.z = 0.0;
+    }
+    addArrowMarkerTwoPointForm( getMarkerId(), 
+                                eig_vec1_pt1, eig_vec1_pt2, 
+                                0.1, 0.1, 0.0, 
+                                "map", 
+                                "distribution", 
+                                1.0, 0.0, 0.0, 1.0);
 
-    tf::Quaternion quat; // Only the TF package in ROS has functions to convert roll, pitch and yaw angles to corsp quaternion
-    quat.setRPY(0.0, 0.0, 0.0);
-    std::cout << quat.getX() << "," << quat.getY() << "," << quat.getZ() << "," << quat.getW() << std::endl;
+    geometry_msgs::Point eig_vec2_pt1;
+    eig_vec1_pt1.x = 0.0;
+    eig_vec1_pt1.y = 0.0;
+    eig_vec1_pt1.z = 0.0;    
+    geometry_msgs::Point pt2_vec2;
+    if(is_only_real) {
+      pt2_vec2.x = three_std_dev_2 * eigen_vectors.col(1)(0); // Eigen vector in column one, 0th element of vector
+      pt2_vec2.y = three_std_dev_2 * eigen_vectors.col(1)(1); // Eigen vector in column one, 1st element of vector
+      pt2_vec2.z = 0.0;
+    }
+    else {
+      pt2_vec2.x = three_std_dev_2 * eigen_vectors_complex.col(1)(0).real(); // Eigen vector in column one, 0th element of vector, its real part
+      pt2_vec2.y = three_std_dev_2 * eigen_vectors_complex.col(1)(1).real(); // Eigen vector in column one, 1st element of vector, its real part
+      pt2_vec2.z = 0.0;
+    }
+    addArrowMarkerTwoPointForm( getMarkerId(), 
+                                eig_vec2_pt1, pt2_vec2, 
+                                0.1, 0.1, 0.0, 
+                                "map", 
+                                "distribution", 
+                                0.0, 1.0, 0.0, 1.0);
 
     // Visualize a single sphere 
+    tf::Quaternion quat; // Only the TF package in ROS has functions to convert roll, pitch and yaw angles to corsp quaternion
+    double yaw = std::atan2(eig_vec1_pt2.y, eig_vec1_pt2.x);
+    std::cout << "yaw eig_vec1 (rad), (deg): " << yaw << ", " << rad2deg(yaw) <<std::endl;
+    quat.setRPY(0.0, 0.0, yaw);
+    std::cout << quat.getX() << "," << quat.getY() << "," << quat.getZ() << "," << quat.getW() << std::endl;
     addSphereMarker(getMarkerId(),
                 mean(0), mean(1), 0.0,
                 quat.getX(), quat.getY(), quat.getZ(), quat.getW(),
@@ -172,52 +217,17 @@ class GaussianDensity {
                 "distribution", 
                 1.0, 1.0, 0.0, 0.4
                 );
-
-    // Visualize eigen vectors
-    geometry_msgs::Point pt1;
-    pt1.x = 0.0;
-    pt1.y = 0.0;
-    pt1.z = 0.0;
-    geometry_msgs::Point pt2;
-    if(is_only_real) {
-      pt2.x = three_std_dev_1 * eigen_vectors.col(0)(0); // Eigen vector in column zero, 0th element of vector
-      pt2.y = three_std_dev_1 * eigen_vectors.col(0)(1); // Eigen vector in column zero, 1st element of vector
-      pt2.z = 0.0;
-    }
-    else {
-      pt2.x = three_std_dev_1 * eigen_vectors_complex.col(0)(0).real(); // Eigen vector in column zero, 0th element of vector, its real part
-      pt2.y = three_std_dev_1 * eigen_vectors_complex.col(0)(1).real(); // Eigen vector in column zero, 1st element of vector, its real part
-      pt2.z = 0.0;
-    }
-    addArrowMarkerTwoPointForm( getMarkerId(), 
-                                pt1, pt2, 
-                                0.1, 0.1, 0.0, 
-                                "map", 
-                                "distribution", 
-                                1.0, 0.0, 0.0, 1.0);
-    if(is_only_real) {
-      pt2.x = three_std_dev_2 * eigen_vectors.col(1)(0); // Eigen vector in column one, 0th element of vector
-      pt2.y = three_std_dev_2 * eigen_vectors.col(1)(1); // Eigen vector in column one, 1st element of vector
-      pt2.z = 0.0;
-    }
-    else {
-      pt2.x = three_std_dev_2 * eigen_vectors_complex.col(1)(0).real(); // Eigen vector in column one, 0th element of vector, its real part
-      pt2.y = three_std_dev_2 * eigen_vectors_complex.col(1)(1).real(); // Eigen vector in column one, 1st element of vector, its real part
-      pt2.z = 0.0;
-    }
-    addArrowMarkerTwoPointForm( getMarkerId(), 
-                                pt1, pt2, 
-                                0.1, 0.1, 0.0, 
-                                "map", 
-                                "distribution", 
-                                0.0, 1.0, 0.0, 1.0);
   }
 
   int getMarkerId()
   {
     markerId += 1;
     return markerId;
-  }  
+  }
+
+  double rad2deg(double x) {
+    return (x * 180) / M_PI;
+  }
 
   void addSphereMarker(const int id,  // Have to provide defaults to all args if multiple of the same type need to exist in a function
                       double x, double y, double z,
