@@ -32,7 +32,7 @@ class GaussianDensity {
 
   Eigen::Vector2d mean;
   Eigen::Matrix2d covariance;
-  double multiplier = 20;
+  const double MULTIPLIER = 20; // For easier visualization and debugging. IS THE REASON WHY probability peak value is > 1.0 in most plots
   int state_dimension;
   double three_std_dev_1;
   double three_std_dev_2;
@@ -129,7 +129,7 @@ class GaussianDensity {
     // std::cout << "det: " << covariance.determinant() << std::endl;
     // std::cout << "normalizer: " << normalizer << std::endl;
     // std::cout << "power: " << power << std::endl;
-    return multiplier * normalizer * std::exp(power);
+    return MULTIPLIER * normalizer * std::exp(power);
   }
 
   void calcDistributionPoints() {
