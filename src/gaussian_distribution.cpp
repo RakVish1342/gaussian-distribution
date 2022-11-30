@@ -59,12 +59,18 @@ class GaussianDensity {
     mean << 0.0, 0.0; 
     // covariance << 2.0, 0.0, 
     //               0.0, 3.0;
+
+    // Very tall distribution. Thus, three_std_dev points (which contain 99% of the volume) appear to drastically cut/chop distribution. 
+    // Need to increase x_range += 5, y_range += 5 in calculateDistributionPoints() to view unclipped distribution.
     // covariance << 0.25, 0.1, 
     //               -0.15, 1.0;
+    
     // covariance << 5, 4, 
     //               4, 6;
+    
     // covariance << 5, -4, 
     //               -4, 6;
+    
     covariance << 5/4.0, -4/4.0, 
                   -4/4.0, 12/4.0;
 
@@ -112,7 +118,7 @@ class GaussianDensity {
       std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
     }
 
-    threshold_probability = 0.1; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
+    threshold_probability = 0.01; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
   }
 
   double probabilityValue(Eigen::Vector2d x) {
@@ -131,6 +137,9 @@ class GaussianDensity {
     //TODO: Replace with Eigen vectors and values for the given covariance matrix
     double x_limit = three_std_dev_1;
     double y_limit = three_std_dev_2;
+    // Hard increment of x and y limits being plotted for very tall distributions which appear to undergo "clipping" at three_std_dev points.
+    // x_limit += 10;
+    // y_limit += 10;
     double quantization_x = 50;
     double quantization_y = 50;
 
