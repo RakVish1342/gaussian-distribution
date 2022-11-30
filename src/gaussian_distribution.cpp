@@ -134,10 +134,17 @@ class GaussianDensity {
     geometry_msgs::Point pt;
     for(double x = -x_limit; x <= x_limit; x += x_limit/quantization_x) {
       for(double y = -y_limit; y <= y_limit; y += y_limit/quantization_y) {
-        double z = probabilityValue(Eigen::Vector2d (x, y));
-        pt.x = x;
-        pt.y = y;
-        pt.z = z;
+
+        // Rotate sample point ranges along eigen vector   
+        tf::Vector3 vec1(x, y, 0.0);
+        tf::Vector3 vec1_rot;
+        double yaw = std::atan2(eigen_vectors.col(0)(1), eigen_vectors.col(0)(0));
+        vec1_rot = vec1.rotate(tf::Vector3(0.0, 0.0, 1.0), yaw);
+
+        pt.x = vec1_rot.getX();
+        pt.y = vec1_rot.getY();
+        pt.z = probabilityValue(Eigen::Vector2d (vec1_rot.getX(), vec1_rot.getY()));
+
         distribution_points.push_back(pt);
       }
     }
