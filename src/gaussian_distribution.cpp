@@ -39,6 +39,7 @@ class GaussianDensity {
   double mean_probability;
 
   bool is_only_real = true;
+  double threshold_probability;
   Eigen::Matrix2d eigen_vectors;
   Eigen::Vector2d eigen_values;
   Eigen::Matrix2cd eigen_vectors_complex;
@@ -110,6 +111,8 @@ class GaussianDensity {
       std::cout << "three_std_dev_1" << ", " << "three_std_dev_2" << ", " << "mean_probability" << std::endl;
       std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
     }
+
+    threshold_probability = 0.1; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
   }
 
   double probabilityValue(Eigen::Vector2d x) {
@@ -145,7 +148,8 @@ class GaussianDensity {
         pt.y = vec1_rot.getY();
         pt.z = probabilityValue(Eigen::Vector2d (vec1_rot.getX(), vec1_rot.getY()));
 
-        distribution_points.push_back(pt);
+        // Push points only if above probability threshold 
+        if(pt.z > threshold_probability) distribution_points.push_back(pt);
       }
     }
   }
