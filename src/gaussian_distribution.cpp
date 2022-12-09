@@ -31,7 +31,9 @@ class GaussianDensity {
   visualization_msgs::Marker mk_n;
 
   Eigen::Vector2d mean;
+  std::vector<Eigen::Vector2d> means;
   Eigen::Matrix2d covariance;
+  std::vector<Eigen::Matrix2d> covariances;
   const double MULTIPLIER = 20; // For easier visualization and debugging. IS THE REASON WHY probability peak value is > 1.0 in most plots
   int state_dimension;
   double three_std_dev_1;
@@ -53,72 +55,6 @@ class GaussianDensity {
   GaussianDensity() 
   {
     pubMkArr = nh.advertise<visualization_msgs::MarkerArray>("/gaussian_distribution/uniform_samples", 1);
-
-    // Covariance matrix meaning and examples: https://www.visiondummy.com/2014/04/geometric-interpretation-covariance-matrix/
-
-    mean << 0.0, 0.0; 
-    // covariance << 2.0, 0.0, 
-    //               0.0, 3.0;
-
-    // Very tall distribution. Thus, three_std_dev points (which contain 99% of the volume) appear to drastically cut/chop distribution. 
-    // Need to increase x_range += 5, y_range += 5 in calculateDistributionPoints() to view unclipped distribution.
-    // covariance << 0.25, 0.1, 
-    //               -0.15, 1.0;
-    
-    // covariance << 5, 4, 
-    //               4, 6;
-    
-    // covariance << 5, -4, 
-    //               -4, 6;
-    
-    covariance << 5/4.0, -4/4.0, 
-                  -4/4.0, 12/4.0;
-
-    std::cout << "mean" << std::endl;
-    std::cout << mean << std::endl;
-    std::cout << "covariance" << std::endl;
-    std::cout << covariance << std::endl;
-
-    state_dimension = covariance.rows();
-    std::cout << "state_dimension: " << state_dimension << std::endl;
-
-    // NOTE: Eigen vectors are reported in increasing order of significance: http://eigen.tuxfamily.org/dox/classEigen_1_1SelfAdjointEigenSolver.html#aaf4ed4172a517a4b9f0ab222f629e261
-    if(is_only_real) {
-      // Uses: Eigen::SelfAdjointEigenSolver(). 
-      // This is supposed to have eigen vectors in decreasing order of significance AND be faster computation for symmetric real matrices (ie self-adjoint matrices).
-      // https://stackoverflow.com/questions/56323727/efficient-way-of-sorting-eigenvalues-and-eigenvectors-obtained-from-eigen
-      // https://forum.kde.org/viewtopic.php?f=9&t=110265
-      Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> es_sa(covariance);
-      eigen_vectors = es_sa.eigenvectors(); // Column order matrix
-      eigen_values = es_sa.eigenvalues();
-      std::cout << "eigen_vectors" << std::endl;
-      std::cout << eigen_vectors << std::endl;
-      std::cout << "eigen values" << std::endl;
-      std::cout << eigen_values << std::endl;
-      
-      three_std_dev_1 = eigen_values(0) * 3;
-      three_std_dev_2 = eigen_values(1) * 3;    
-      mean_probability = probabilityValue(mean);
-      std::cout << "three_std_dev_1" << ", " << "three_std_dev_2" << ", " << "mean_probability" << std::endl;
-      std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
-    }
-    else {
-      Eigen::EigenSolver<Eigen::Matrix2d> es(covariance);
-      eigen_vectors_complex = es.eigenvectors(); // Column order matrix
-      eigen_values_complex = es.eigenvalues();
-      std::cout << "eigen_vectors_complex" << std::endl;
-      std::cout << eigen_vectors_complex << std::endl;
-      std::cout << "eigen values" << std::endl;
-      std::cout << eigen_values_complex << std::endl;
-      
-      three_std_dev_1 = eigen_values_complex(0).real() * 3;
-      three_std_dev_2 = eigen_values_complex(1).real() * 3;    
-      mean_probability = probabilityValue(mean);
-      std::cout << "three_std_dev_1" << ", " << "three_std_dev_2" << ", " << "mean_probability" << std::endl;
-      std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
-    }
-
-    threshold_probability = 0.01; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
   }
 
   double probabilityValue(Eigen::Vector2d x) {
@@ -130,6 +66,98 @@ class GaussianDensity {
     // std::cout << "normalizer: " << normalizer << std::endl;
     // std::cout << "power: " << power << std::endl;
     return MULTIPLIER * normalizer * std::exp(power);
+  }
+
+  void calcDistributionParams() {
+
+    means = {
+      (Eigen::MatrixXd(2,1) << 0.0, 0.0).finished(),
+      (Eigen::MatrixXd(2,1) << 3.0, 3.0).finished()
+    };
+
+    covariances = {
+      (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
+      (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
+    };
+
+    /*
+      // Covariance matrix meaning and examples: https://www.visiondummy.com/2014/04/geometric-interpretation-covariance-matrix/
+
+      // mean << 0.0, 0.0; 
+      // covariance << 2.0, 0.0, 
+      //               0.0, 3.0;
+
+      // Very tall distribution. Thus, three_std_dev points (which contain 99% of the volume) appear to drastically cut/chop distribution. 
+      // Need to increase x_range += 5, y_range += 5 in calculateDistributionPoints() to view unclipped distribution.
+      // covariance << 0.25, 0.1, 
+      //               -0.15, 1.0;
+      
+      // covariance << 5, 4, 
+      //               4, 6;
+      
+      // covariance << 5, -4, 
+      //               -4, 6;
+      
+      // covariance << 5/4.0, -4/4.0, 
+      //               -4/4.0, 12/4.0;
+    */
+
+
+    for (int i=0; i<means.size(); ++i) {
+
+      std::cout << ">>> DISTRIBUTION: " << i << std::endl;
+
+      mean = means[i];
+      covariance = covariances[i];
+      std::cout << "mean" << std::endl;
+      std::cout << mean << std::endl;
+      std::cout << "covariance" << std::endl;
+      std::cout << covariance << std::endl;
+
+      state_dimension = covariance.rows();
+      std::cout << "state_dimension: " << state_dimension << std::endl;
+
+      // NOTE: Eigen vectors are reported in increasing order of significance: http://eigen.tuxfamily.org/dox/classEigen_1_1SelfAdjointEigenSolver.html#aaf4ed4172a517a4b9f0ab222f629e261
+      if(is_only_real) {
+        // Uses: Eigen::SelfAdjointEigenSolver(). 
+        // This is supposed to have eigen vectors in decreasing order of significance AND be faster computation for symmetric real matrices (ie self-adjoint matrices).
+        // https://stackoverflow.com/questions/56323727/efficient-way-of-sorting-eigenvalues-and-eigenvectors-obtained-from-eigen
+        // https://forum.kde.org/viewtopic.php?f=9&t=110265
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> es_sa(covariance);
+        eigen_vectors = es_sa.eigenvectors(); // Column order matrix
+        eigen_values = es_sa.eigenvalues();
+        std::cout << "eigen_vectors" << std::endl;
+        std::cout << eigen_vectors << std::endl;
+        std::cout << "eigen values" << std::endl;
+        std::cout << eigen_values << std::endl;
+        
+        three_std_dev_1 = eigen_values(0) * 3;
+        three_std_dev_2 = eigen_values(1) * 3;    
+        mean_probability = probabilityValue(mean);
+        std::cout << "three_std_dev_1" << ", " << "three_std_dev_2" << ", " << "mean_probability" << std::endl;
+        std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
+      }
+      else {
+        Eigen::EigenSolver<Eigen::Matrix2d> es(covariance);
+        eigen_vectors_complex = es.eigenvectors(); // Column order matrix
+        eigen_values_complex = es.eigenvalues();
+        std::cout << "eigen_vectors_complex" << std::endl;
+        std::cout << eigen_vectors_complex << std::endl;
+        std::cout << "eigen values" << std::endl;
+        std::cout << eigen_values_complex << std::endl;
+        
+        three_std_dev_1 = eigen_values_complex(0).real() * 3;
+        three_std_dev_2 = eigen_values_complex(1).real() * 3;    
+        mean_probability = probabilityValue(mean);
+        std::cout << "three_std_dev_1" << ", " << "three_std_dev_2" << ", " << "mean_probability" << std::endl;
+        std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
+      }
+
+      threshold_probability = 0.01; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
+      calcDistributionPoints();
+      visualizeAll();
+    }
+
   }
 
   void calcDistributionPoints() {
@@ -179,18 +207,18 @@ class GaussianDensity {
 
     // Visualize eigen vectors (from least significant to most significant)
     geometry_msgs::Point eig_vec1_pt1;
-    eig_vec1_pt1.x = 0.0;
-    eig_vec1_pt1.y = 0.0;
+    eig_vec1_pt1.x = mean(0);
+    eig_vec1_pt1.y = mean(1);
     eig_vec1_pt1.z = 0.0;
     geometry_msgs::Point eig_vec1_pt2;
     if(is_only_real) {
-      eig_vec1_pt2.x = three_std_dev_1 * eigen_vectors.col(0)(0); // Eigen vector in column zero, 0th element of vector
-      eig_vec1_pt2.y = three_std_dev_1 * eigen_vectors.col(0)(1); // Eigen vector in column zero, 1st element of vector
+      eig_vec1_pt2.x = eig_vec1_pt1.x + three_std_dev_1 * eigen_vectors.col(0)(0); // Eigen vector in column zero, 0th element of vector
+      eig_vec1_pt2.y = eig_vec1_pt1.y + three_std_dev_1 * eigen_vectors.col(0)(1); // Eigen vector in column zero, 1st element of vector
       eig_vec1_pt2.z = 0.0;
     }
     else {
-      eig_vec1_pt2.x = three_std_dev_1 * eigen_vectors_complex.col(0)(0).real(); // Eigen vector in column zero, 0th element of vector, its real part
-      eig_vec1_pt2.y = three_std_dev_1 * eigen_vectors_complex.col(0)(1).real(); // Eigen vector in column zero, 1st element of vector, its real part
+      eig_vec1_pt2.x = eig_vec1_pt1.x + three_std_dev_1 * eigen_vectors_complex.col(0)(0).real(); // Eigen vector in column zero, 0th element of vector, its real part
+      eig_vec1_pt2.y = eig_vec1_pt1.y + three_std_dev_1 * eigen_vectors_complex.col(0)(1).real(); // Eigen vector in column zero, 1st element of vector, its real part
       eig_vec1_pt2.z = 0.0;
     }
     addArrowMarkerTwoPointForm( getMarkerId(), 
@@ -201,18 +229,18 @@ class GaussianDensity {
                                 1.0, 0.0, 0.0, 1.0);
 
     geometry_msgs::Point eig_vec2_pt1;
-    eig_vec1_pt1.x = 0.0;
-    eig_vec1_pt1.y = 0.0;
-    eig_vec1_pt1.z = 0.0;    
+    eig_vec2_pt1.x = mean(0);
+    eig_vec2_pt1.y = mean(1);
+    eig_vec2_pt1.z = 0.0;    
     geometry_msgs::Point pt2_vec2;
     if(is_only_real) {
-      pt2_vec2.x = three_std_dev_2 * eigen_vectors.col(1)(0); // Eigen vector in column one, 0th element of vector
-      pt2_vec2.y = three_std_dev_2 * eigen_vectors.col(1)(1); // Eigen vector in column one, 1st element of vector
+      pt2_vec2.x = eig_vec2_pt1.x + three_std_dev_2 * eigen_vectors.col(1)(0); // Eigen vector in column one, 0th element of vector
+      pt2_vec2.y = eig_vec2_pt1.y + three_std_dev_2 * eigen_vectors.col(1)(1); // Eigen vector in column one, 1st element of vector
       pt2_vec2.z = 0.0;
     }
     else {
-      pt2_vec2.x = three_std_dev_2 * eigen_vectors_complex.col(1)(0).real(); // Eigen vector in column one, 0th element of vector, its real part
-      pt2_vec2.y = three_std_dev_2 * eigen_vectors_complex.col(1)(1).real(); // Eigen vector in column one, 1st element of vector, its real part
+      pt2_vec2.x = eig_vec2_pt1.x + three_std_dev_2 * eigen_vectors_complex.col(1)(0).real(); // Eigen vector in column one, 0th element of vector, its real part
+      pt2_vec2.y = eig_vec2_pt1.y + three_std_dev_2 * eigen_vectors_complex.col(1)(1).real(); // Eigen vector in column one, 1st element of vector, its real part
       pt2_vec2.z = 0.0;
     }
     addArrowMarkerTwoPointForm( getMarkerId(), 
@@ -336,14 +364,11 @@ class GaussianDensity {
     std::cout.precision(std::numeric_limits<double>::max_digits10);  // set new precision. OR can set as: std::cout.precision(6); for 6 digit precision
     // std::cout.precision(ss); // Change back to default precision.
 
-    /*
-    Eigen::Vector2d x = {0.0, 0.0};
-    probabilityValue(x);
-    */
+    calcDistributionParams();
 
-    calcDistributionPoints();
+    //calcDistributionPoints();
 
-    visualizeAll();
+    //visualizeAll();
 
     std_msgs::Header hdr;
     hdr.frame_id = "map";
