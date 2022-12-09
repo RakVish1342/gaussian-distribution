@@ -172,8 +172,12 @@ class GaussianDensity {
     double quantization_y = 50;
 
     geometry_msgs::Point pt;
-    for(double x = -x_limit; x <= x_limit; x += x_limit/quantization_x) {
-      for(double y = -y_limit; y <= y_limit; y += y_limit/quantization_y) {
+    for(double x_ctr = -x_limit; x_ctr <= x_limit; x_ctr += x_limit/quantization_x) {
+      for(double y_ctr = -y_limit; y_ctr <= y_limit; y_ctr += y_limit/quantization_y) {
+
+        // Limits are relative to the region of the mean
+        double x = x_ctr + mean(0);
+        double y = y_ctr + mean(1);
 
         // Rotate sample point ranges along eigen vector   
         tf::Vector3 vec1(x, y, 0.0);
