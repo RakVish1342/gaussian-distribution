@@ -183,22 +183,21 @@ class GaussianDensity {
     double quantization_y = 50;
 
     geometry_msgs::Point pt;
-    for(double x_ctr = -x_limit; x_ctr <= x_limit; x_ctr += x_limit/quantization_x) {
-      for(double y_ctr = -y_limit; y_ctr <= y_limit; y_ctr += y_limit/quantization_y) {
+    for(double x = -x_limit; x <= x_limit; x += x_limit/quantization_x) {
+      for(double y = -y_limit; y <= y_limit; y += y_limit/quantization_y) {
 
-        // Limits are relative to the region of the mean
-        double x = x_ctr + mean(0);
-        double y = y_ctr + mean(1);
-
-        // Rotate sample point ranges along eigen vector   
+        /// Rotate sample point ranges along eigen vector   
         tf::Vector3 vec1(x, y, 0.0);
         tf::Vector3 vec1_rot;
-        double yaw = std::atan2(eigen_vectors.col(0)(1), eigen_vectors.col(0)(0));
-        vec1_rot = vec1.rotate(tf::Vector3(0.0, 0.0, 1.0), yaw);
+        double yaw;
+        if(is_only_real) yaw = std::atan2(eigen_vectors.col(0)(1), eigen_vectors.col(0)(0));
+        else yaw = std::atan2(eigen_vectors_complex.col(0)(0).real(), eigen_vectors_complex.col(0)(1).real());
+        vec1_rot = vec1.rotate(tf::Vector3(0.0, 0.0, 1.0), yaw); // Rotate about z axis by 'yaw' angle
 
-        pt.x = vec1_rot.getX();
-        pt.y = vec1_rot.getY();
-        pt.z = probabilityValue(Eigen::Vector2d (vec1_rot.getX(), vec1_rot.getY()));
+        /// After rotation, finally add mean to make relative position of point around the mean 
+        pt.x = mean(0) + vec1_rot.getX();
+        pt.y = mean(1) + vec1_rot.getY();
+        pt.z = probabilityValue(Eigen::Vector2d (pt.x, pt.y));
 
         // Push points only if above probability threshold 
         if(pt.z > threshold_probability) distribution_points.push_back(pt);
