@@ -80,10 +80,19 @@ class GaussianDensity {
     //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
     //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
     // };
+    // covariances = {
+    //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
+    //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished()
+    // };
     covariances = {
-      (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
+      (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
       (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished()
-    };
+    };    
+    // covariances = {
+    //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
+    //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
+    // };    
+
 
     for (int i = 0; i < means.size(); ++i) {
       std::cout << ">>> DISTRIBUTION: " << i << std::endl;
@@ -163,7 +172,7 @@ class GaussianDensity {
 
     threshold_probability = 0.01; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
     calcDistributionPoints();
-    visualizeAll();
+    visualize();
     std::cout << "===" << std::endl;
   }
 
@@ -224,8 +233,17 @@ class GaussianDensity {
     // Eigen::Matrix2d F = (Eigen::MatrixXd(2,2) << 1.0, 0.0, 0.0, 1.0).finished();
     // Eigen::Matrix2d Q = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished();
 
-    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished(); // Low measurement uncertainty  -- Leads to: 1. posterior mean closer to measurement mean 2. Higher convergence (relatively less spread) of posterior variance
-    Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 10, 0.0, 0.0, 10).finished(); // High measurement uncertainty -- Leads to: 1. posterior mean closer to prior mean 2. Lower convergence (relatively more spread) of posterior variance
+    /// Low measurement uncertainty leads to: 
+    /// 1. posterior mean closer to measurement mean 
+    /// 2. Higher convergence (relatively less spread/variance) of posterior variance
+    /// 3. Mean probability is really high due to high confidence in measurement update
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished();
+    Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 1.0, 0.0, 0.0, 1.0).finished();
+    /// High measurement uncertainty leads to: 
+    /// 1. posterior mean closer to prior mean 
+    /// 2. Lower convergence (relatively more spread/variance) of posterior variance
+    /// 3. Mean probability is only slightly higer than prior and posterior due to low confidence in measurement update
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 10, 0.0, 0.0, 10).finished();
 
     Eigen::Matrix2d P = x_hat.covariance;
 
@@ -257,7 +275,7 @@ class GaussianDensity {
     std::cout << x.covariance << std::endl;
   }
 
-  void visualizeAll() {
+  void visualize() {
 
     /// Visualize distribution_points
     for(const geometry_msgs::Point& pt : distribution_points) {
