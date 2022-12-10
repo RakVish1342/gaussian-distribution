@@ -164,6 +164,7 @@ class GaussianDensity {
     threshold_probability = 0.01; // OR set as the value at some quartile/std dev of the distribution by calling probabilityValue() function
     calcDistributionPoints();
     visualizeAll();
+    std::cout << "===" << std::endl;
   }
 
   /**
@@ -205,8 +206,55 @@ class GaussianDensity {
     }
   }
 
-  void fuseDistributions() {
+  struct Distribution
+  {
+    Eigen::Vector2d mean;
+    Eigen::Matrix2d covariance;
+  };
 
+  void fuseDistributions() {
+    Distribution x_hat;
+    x_hat.mean = means[0];
+    x_hat.covariance = covariances[0];
+
+    Distribution z;
+    z.mean = means[1];
+    z.covariance = covariances[1];
+
+    // Eigen::Matrix2d F = (Eigen::MatrixXd(2,2) << 1.0, 0.0, 0.0, 1.0).finished();
+    // Eigen::Matrix2d Q = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished();
+
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished(); // Low measurement uncertainty  -- Leads to: 1. posterior mean closer to measurement mean 2. Higher convergence (relatively less spread) of posterior variance
+    Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 10, 0.0, 0.0, 10).finished(); // High measurement uncertainty -- Leads to: 1. posterior mean closer to prior mean 2. Lower convergence (relatively more spread) of posterior variance
+
+    Eigen::Matrix2d P = x_hat.covariance;
+
+    Eigen::Matrix2d K = P * (P + R).inverse();
+
+    Distribution x;
+    x.mean = x_hat.mean + K * (z.mean - x_hat.mean);
+    x.covariance = (Eigen::Matrix2d::Identity() - K) * P * (Eigen::Matrix2d::Identity() - K).transpose() + K*R*K;
+
+    std::cout << "Fused Parameters" << std::endl;
+
+    calcDistributionParams(x.mean, x.covariance);
+
+    // std::cout << "F" << std::endl;
+    // std::cout << F << std::endl;
+    // std::cout << "Q" << std::endl;
+    // std::cout << Q << std::endl;
+    std::cout << "P" << std::endl;
+    std::cout << P << std::endl;
+    std::cout << "R" << std::endl;
+    std::cout << R << std::endl;
+    std::cout << "K" << std::endl;
+    std::cout << K << std::endl;
+    std::cout << "z - x_hat" << std::endl;
+    std::cout << (z.mean - x_hat.mean) << std::endl;
+    std::cout << "x.mean" << std::endl;
+    std::cout << x.mean << std::endl;
+    std::cout << "x.covariance" << std::endl;
+    std::cout << x.covariance << std::endl;
   }
 
   void visualizeAll() {
