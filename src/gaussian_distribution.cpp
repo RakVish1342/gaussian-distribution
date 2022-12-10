@@ -87,7 +87,7 @@ class GaussianDensity {
     covariances = {
       (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
       (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished()
-    };    
+    };  
     // covariances = {
     //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
     //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
@@ -239,11 +239,17 @@ class GaussianDensity {
     /// 3. Mean probability is really high due to high confidence in measurement update
     // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished();
     Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 1.0, 0.0, 0.0, 1.0).finished();
+    
     /// High measurement uncertainty leads to: 
     /// 1. posterior mean closer to prior mean 
     /// 2. Lower convergence (relatively more spread/variance) of posterior variance
     /// 3. Mean probability is only slightly higer than prior and posterior due to low confidence in measurement update
     // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 10, 0.0, 0.0, 10).finished();
+    
+    ///Generic uncertainty matrix with correlations leads to: 
+    /// 1. unequal eigen vectors for posterior -- since 1,1 and 2,2 elements of matrix are not equal
+    /// 2. non-XY-axis-aligned posterior -- since off-diagonal elements of matrix are non-zero
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 1.0, 0.5, 0.5, 2.5).finished();
 
     Eigen::Matrix2d P = x_hat.covariance;
 
