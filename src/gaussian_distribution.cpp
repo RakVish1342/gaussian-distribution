@@ -76,23 +76,44 @@ class GaussianDensity {
       (Eigen::MatrixXd(2,1) << 3.0, 3.0).finished()
     };
 
+    // Two identical distributions but mean-shifted
     // covariances = {
     //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
     //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
     // };
+    // Two non-skewed distributions, with one being sqrt(3) times more spread out
+    // covariances = {
+    //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
+    //   (Eigen::MatrixXd(2,2) << 6.0, 0.0, 0.0, 9.0).finished()
+    // };
+    // Two non-skewed distributions with highly different covariance values. To test behavior of posterior while varying measurement uncertainty R
+    // covariances = {
+    //   (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished(),
+    //   (Eigen::MatrixXd(2,2) << 6.0, 0.0, 0.0, 9.0).finished()
+    // };
+    // Two identical skewed (non-zero off-diagonal elements) distributions
     // covariances = {
     //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
     //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished()
     // };
-    covariances = {
-      (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
-      (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished()
-    };  
+    // Non-skewed and skewed distributions to test for skewness in posterior while varying R but keeping R zero off diagonals.
+    // Orientation of posterior seem to always be oriented in the direction of prior.
+    // TODO: Possibly due to non-zero/zero off-diagonal elements in K which in-turn comes from P ... K = P/(P+R); P_new = (I - K) * P;
+    // IS THIS BEHAVIOR WRONG?? Even for  vv confident/small (but zero off-diagonal) R, posterior closer to measurement, BUT STILL ORIENTED LIKE PRIOR.
+    // Only if R has non-zero diagonals does posterior get oriented away from that of prior.
     // covariances = {
-    //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
-    //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
-    // };    
-
+    //   (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished(),
+    //   (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished()
+    // };  
+    // Skewed and non-skewed distributions  to test for skewness in posterior while varying R but keeping R zero off diagonals.
+    // Orientation of posterior seem to always be oriented in the direction of prior.
+    // TODO: Possibly due to non-zero/zero off-diagonal elements in K which in-turn comes from P ... K = P/(P+R); P_new = (I - K) * P;
+    // IS THIS BEHAVIOR WRONG?? Even for  vv confident/small (but zero off-diagonal) R, posterior closer to measurement, BUT STILL ORIENTED LIKE PRIOR.
+    // Only if R has non-zero diagonals does posterior get oriented away from that of prior.
+    covariances = {
+      (Eigen::MatrixXd(2,2) << 5/4.0, -4/4.0, -4/4.0, 12/4.0).finished(),
+      (Eigen::MatrixXd(2,2) << 2.0, 0.0, 0.0, 3.0).finished()
+    }; 
 
     for (int i = 0; i < means.size(); ++i) {
       std::cout << ">>> DISTRIBUTION: " << i << std::endl;
