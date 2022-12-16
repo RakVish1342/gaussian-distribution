@@ -75,6 +75,10 @@ class GaussianDensity {
       (Eigen::MatrixXd(2,1) << 0.0, 0.0).finished(),
       (Eigen::MatrixXd(2,1) << 3.0, 3.0).finished()
     };
+    // means = {
+    //   (Eigen::MatrixXd(2,1) << 4.0, 2.0).finished(),
+    //   (Eigen::MatrixXd(2,1) << 2.0, 4.0).finished()
+    // };    
 
     // Two identical distributions but mean-shifted
     // covariances = {
@@ -170,7 +174,7 @@ class GaussianDensity {
       std::cout << eigen_values << std::endl;
       
       three_std_dev_1 = eigen_values(0) * 3;
-      three_std_dev_2 = eigen_values(1) * 3;    
+      three_std_dev_2 = eigen_values(1) * 3;
       mean_probability = probabilityValue(mean);
       std::cout << "three_std_dev_1" << ", " << "three_std_dev_2" << ", " << "mean_probability" << std::endl;
       std::cout << three_std_dev_1 << ", " << three_std_dev_2 << ", " << mean_probability << std::endl;
@@ -258,19 +262,28 @@ class GaussianDensity {
     /// 1. posterior mean closer to measurement mean 
     /// 2. Higher convergence (relatively less spread/variance) of posterior variance
     /// 3. Mean probability is really high due to high confidence in measurement update
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 0.03, 0.0, 0.0, 0.03).finished();
     // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 0.1, 0.0, 0.0, 0.1).finished();
-    Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 1.0, 0.0, 0.0, 1.0).finished();
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 1.0, 0.0, 0.0, 1.0).finished();
     
     /// High measurement uncertainty leads to: 
     /// 1. posterior mean closer to prior mean 
     /// 2. Lower convergence (relatively more spread/variance) of posterior variance
     /// 3. Mean probability is only slightly higer than prior and posterior due to low confidence in measurement update
     // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 10, 0.0, 0.0, 10).finished();
+    // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 30, 0.0, 0.0, 30).finished();
     
-    ///Generic uncertainty matrix with correlations leads to: 
+    /// Generic uncertainty matrix with correlations leads to: 
     /// 1. unequal eigen vectors for posterior -- since 1,1 and 2,2 elements of matrix are not equal
     /// 2. non-XY-axis-aligned posterior -- since off-diagonal elements of matrix are non-zero
     // Eigen::Matrix2d R = (Eigen::MatrixXd(2,2) << 1.0, 0.5, 0.5, 2.5).finished();
+
+    /// Generic uncertainty matrix with correlations such that they are aligned with the measurement's eigen vectors:
+    // Creation of covariance matrix from eigen vectors and values: https://math.stackexchange.com/questions/1119668/determine-a-matrix-knowing-its-eigenvalues-and-eigenvectors
+    // Tried to create matrix using eig vec or measurement and then scale them by an amount corresponding to the sensor noise uncertainty diagonal matrix
+    // However, here, we are just fusing two distributions of known mean and uncertainty, thus, R should just be the covariance of the measurement
+    // ie. R = S * M * Sinv = measurement covariance matrix itself! (where M = diag matrix of eig vals of measurement and S = matrix of eig vecs of measurement)
+    Eigen::Matrix2d R = z.covariance;
 
     Eigen::Matrix2d P = x_hat.covariance;
 
