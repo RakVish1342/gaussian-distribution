@@ -121,6 +121,10 @@ class GaussianDensity {
 
     for (int i = 0; i < means.size(); ++i) {
       std::cout << ">>> DISTRIBUTION: " << i << std::endl;
+
+      // Transform all distributions (prior, measurement and posterior) to a new location and orientation (ie. a new frame apart from the origin)
+      std::tie(means[i], covariances[i]) = transformDistribution(means[i], covariances[i]);
+
       calcDistributionParams(means[i], covariances[i]);
     }
 
@@ -146,6 +150,21 @@ class GaussianDensity {
       //               -4/4.0, 12/4.0;
     */
 
+  }
+
+  std::tuple<Eigen::Vector2d, Eigen::Matrix2d> 
+  transformDistribution(Eigen::Vector2d _mean, Eigen::Matrix2d _covariance) {
+    Eigen::Vector2d shift = (Eigen::MatrixXd(2,1) << 5.0, 5.0).finished();
+    double yaw = deg2rad(45);
+    Eigen::Matrix2d Rot = (Eigen::MatrixXd(2,2) << std::cos(yaw), -std::sin(yaw), std::sin(yaw), std::cos(yaw)).finished();
+
+    /// Translate the mean, Rotate the covariance
+    // Rotation of covariance matrix derivation: https://robotics.stackexchange.com/questions/2556/how-to-rotate-covariance?newreg=f4acd1473ef94bed862127cbda9ae23c
+    // or direct result: https://stackoverflow.com/questions/52922647/rotate-covariance-matrix
+    Eigen::Vector2d mean_shifted = _mean + shift;
+    Eigen::Matrix2d covariance_shifted = Rot * _covariance * Rot.transpose();
+
+    return std::tuple<Eigen::Vector2d, Eigen::Matrix2d> {mean_shifted, covariance_shifted};
   }
 
   void calcDistributionParams(Eigen::Vector2d _mean, Eigen::Matrix2d _covariance) {
@@ -409,6 +428,10 @@ class GaussianDensity {
   {
     markerId += 1;
     return markerId;
+  }
+
+  double deg2rad(double x) {
+    return (x * M_PI) / 180;
   }
 
   double rad2deg(double x) {
